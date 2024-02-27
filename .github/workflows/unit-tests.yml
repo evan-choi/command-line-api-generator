@@ -1,0 +1,31 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Unit Tests
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Test
+      working-directory: src/System.CommandLine.SourceGenerator.Tests
+      run: dotnet test --logger "trx;LogFileName=test-results.trx"
+
+    - name: Report
+      if: success() || failure()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Unit tests report
+        path: src/System.CommandLine.SourceGenerator.Tests/TestResults/test-results.trx
+        reporter: dotnet-trx
