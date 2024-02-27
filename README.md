@@ -64,6 +64,7 @@ Bootstrap and run your application by invoking the command handler from your pro
 ```csharp
 static async Task Main(string[] args)
 {
-    Environment.ExitCode = await AppCommandExecutor.InvokeAsync(args);
+    var command = AppCommandFactory.Create();
+    Environment.ExitCode = await command.InvokeAsync(args);
 }
 ```
