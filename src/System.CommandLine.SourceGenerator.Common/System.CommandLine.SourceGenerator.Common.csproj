@@ -13,9 +13,11 @@
         <PackageIcon>packageIcon.png</PackageIcon>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/evan-choi/command-line-api-generator</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup Label="NuGet package definition">
+        <None Include="../../README.md" Pack="true" PackagePath="\"/>
         <None Include="../../packageIcon.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 
