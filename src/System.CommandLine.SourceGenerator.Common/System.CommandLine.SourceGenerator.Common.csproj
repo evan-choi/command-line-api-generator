@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="NuGet package definition">
-        <PackageId>Evan.System.CommandLine.SourceGenerator</PackageId>
+        <PackageId>Evan.System.CommandLine.SourceGenerator.Common</PackageId>
         <Authors>evan-choi</Authors>
         <Copyright>Copyright 2024 evan-choi</Copyright>
         <Description>Simplify your CLI tool development with System.CommandLine.SourceGenerator, offering automated command structure generation and effortless command handling through source generators.</Description>
