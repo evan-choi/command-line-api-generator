@@ -5,6 +5,20 @@
         <LangVersion>11</LangVersion>
     </PropertyGroup>
 
+    <PropertyGroup Label="NuGet package definition">
+        <PackageId>Evan.System.CommandLine.SourceGenerator</PackageId>
+        <Authors>evan-choi</Authors>
+        <Copyright>Copyright 2024 evan-choi</Copyright>
+        <Description>Simplify your CLI tool development with System.CommandLine.SourceGenerator, offering automated command structure generation and effortless command handling through source generators.</Description>
+        <PackageIcon>packageIcon.png</PackageIcon>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/evan-choi/command-line-api-generator</PackageProjectUrl>
+    </PropertyGroup>
+
+    <ItemGroup Label="NuGet package definition">
+        <None Include="../../packageIcon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     </ItemGroup>

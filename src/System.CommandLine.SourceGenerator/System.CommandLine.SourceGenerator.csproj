@@ -22,7 +22,7 @@
         <Description>Simplify your CLI tool development with System.CommandLine.SourceGenerator, offering automated command structure generation and effortless command handling through source generators.</Description>
         <PackageIcon>packageIcon.png</PackageIcon>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageProjectUrl>https://github.com/evan-choi/System.CommandLine.SourceGenerator</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/evan-choi/command-line-api-generator</PackageProjectUrl>
     </PropertyGroup>
 
     <ItemGroup Label="NuGet package definition">
