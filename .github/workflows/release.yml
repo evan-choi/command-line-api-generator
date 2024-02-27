@@ -8,6 +8,7 @@ on:
     inputs:
       VERSION:
         description: 배포 버전 (ex. 1.0.0)
+        required: true
 
 jobs:
   release:
