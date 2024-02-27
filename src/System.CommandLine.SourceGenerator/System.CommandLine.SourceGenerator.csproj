@@ -6,6 +6,7 @@
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <LangVersion>11</LangVersion>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
     <ItemGroup>
