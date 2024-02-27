@@ -1,0 +1,43 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Unit Tests
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: 배포 버전 (ex. 1.0.0)
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Test
+      working-directory: src/System.CommandLine.SourceGenerator.Tests
+      run: dotnet test
+
+    - name: Pack Common
+      working-directory: src/System.CommandLine.SourceGenerator.Common
+      run: dotnet pack --nologo -c Release -o ../../Artifacts -p:Version=${{ inputs.VERSION }}
+
+    - name: Pack Generator
+      working-directory: src/System.CommandLine.SourceGenerator
+      run: dotnet pack --nologo -c Release -o ../../Artifacts -p:Version=${{ inputs.VERSION }}
+
+    - name: Push to NuGet
+      working-directory: Artifacts
+      run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
