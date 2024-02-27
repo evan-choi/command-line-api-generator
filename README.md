@@ -1,14 +1,14 @@
-[![NuGet](https://img.shields.io/nuget/v/Evan.System.CommandLine.Tools)](https://www.nuget.org/packages/Evan.System.CommandLine.Tools)
+[![NuGet](https://img.shields.io/nuget/v/Evan.System.CommandLine.SourceGenerator)](https://www.nuget.org/packages/Evan.System.CommandLine.SourceGenerator)
 
-# System.CommandLine.Tools
-Enhance your .NET CLI applications with dynamic command-line interface (CLI) capabilities using `System.CommandLine.Tools`. This package leverages the power of source generators to automatically create robust RootCommand code, simplifying the development of complex CLI tools.
+# System.CommandLine.SourceGenerator
+Enhance your .NET CLI applications with dynamic command-line interface (CLI) capabilities using `System.CommandLine.SourceGenerator`. This package leverages the power of source generators to automatically create robust RootCommand code, simplifying the development of complex CLI tools.
 
 ## Getting Started
 
-To incorporate `System.CommandLine.Tools` into your project, simply install the package via NuGet:
+To incorporate `System.CommandLine.SourceGenerator` into your project, simply install the package via NuGet:
 
 ```powershell
-Install-Package Evan.System.CommandLine.Tools
+Install-Package Evan.System.CommandLine.SourceGenerator
 ```
 
 ## Defining Commands
