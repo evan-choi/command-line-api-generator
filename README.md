@@ -9,6 +9,7 @@ To incorporate `System.CommandLine.SourceGenerator` into your project, simply in
 
 ```powershell
 Install-Package Evan.System.CommandLine.SourceGenerator
+Install-Package Evan.System.CommandLine.SourceGenerator.Common
 ```
 
 ## Defining Commands

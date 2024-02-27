@@ -25,13 +25,9 @@ jobs:
       working-directory: src/System.CommandLine.SourceGenerator.Tests
       run: dotnet test
 
-    - name: Pack Common
-      working-directory: src/System.CommandLine.SourceGenerator.Common
-      run: dotnet pack --nologo -c Release -o ../../Artifacts -p:Version=${{ inputs.VERSION }}
-
-    - name: Pack Generator
-      working-directory: src/System.CommandLine.SourceGenerator
-      run: dotnet pack --nologo -c Release -o ../../Artifacts -p:Version=${{ inputs.VERSION }}
+    - name: Pack
+      working-directory: src
+      run: dotnet pack --nologo -c Release -o ../Artifacts -p:Version=${{ inputs.VERSION }}
 
     - name: Push to NuGet
       working-directory: Artifacts

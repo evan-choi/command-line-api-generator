@@ -7,6 +7,7 @@
         <LangVersion>11</LangVersion>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,6 +32,11 @@
         <None Include="../../README.md" Pack="true" PackagePath="\"/>
         <None Include="../../packageIcon.png" Pack="true" PackagePath="\" />
         <None Include="$(OutputPath)\$(AssemblyName).dll">
+            <Pack>true</Pack>
+            <PackagePath>analyzers/dotnet/cs</PackagePath>
+            <Visible>false</Visible>
+        </None>
+        <None Include="$(OutputPath)\$(AssemblyName).Common.dll">
             <Pack>true</Pack>
             <PackagePath>analyzers/dotnet/cs</PackagePath>
             <Visible>false</Visible>

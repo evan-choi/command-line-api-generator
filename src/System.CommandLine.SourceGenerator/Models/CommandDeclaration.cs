@@ -80,10 +80,9 @@ internal class CommandDeclaration
             if (optionAttribute == null && globalOptionAttribute == null && argumentAttribute == null)
                 continue;
 
-            ArgumentArity? argumentArity = attributes
+            var argumentArity = attributes
                 .FirstOrDefault(x => x.AttributeClass.Is(context.ArgumentArityAttributeType))
-                ?.Create<ArgumentArityAttribute>()
-                ?.Arity;
+                ?.Create<ArgumentArityAttribute>();
 
             if (optionAttribute is not null)
             {

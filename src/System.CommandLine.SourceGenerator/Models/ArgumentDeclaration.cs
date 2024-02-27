@@ -9,9 +9,9 @@ internal sealed class ArgumentDeclaration : IPropertyBasedSymbolDeclaration
 
     public IAttributeDeclaration<ArgumentAttribute> Attribute { get; }
 
-    public ArgumentArity? Arity { get; }
+    public ArgumentArityAttribute Arity { get; }
 
-    public ArgumentDeclaration(IPropertySymbol propertySymbol, IAttributeDeclaration<ArgumentAttribute> attribute, ArgumentArity? arity)
+    public ArgumentDeclaration(IPropertySymbol propertySymbol, IAttributeDeclaration<ArgumentAttribute> attribute, ArgumentArityAttribute arity)
     {
         PropertySymbol = propertySymbol;
         Attribute = attribute;

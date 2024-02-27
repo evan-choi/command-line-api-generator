@@ -11,9 +11,9 @@ internal sealed class OptionDeclaration : IPropertyBasedSymbolDeclaration
 
     public IAttributeDeclaration<OptionAttribute> Attribute { get; }
 
-    public ArgumentArity? Arity { get; }
+    public ArgumentArityAttribute Arity { get; }
 
-    public OptionDeclaration(IPropertySymbol propertySymbol, IAttributeDeclaration<OptionAttribute> attribute, ArgumentArity? arity)
+    public OptionDeclaration(IPropertySymbol propertySymbol, IAttributeDeclaration<OptionAttribute> attribute, ArgumentArityAttribute arity)
     {
         PropertySymbol = propertySymbol;
         Attribute = attribute;

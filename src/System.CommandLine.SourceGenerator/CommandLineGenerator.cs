@@ -229,17 +229,15 @@ internal static class CommandLineGenerator
         }
     }
 
-    private static IEnumerable<Property> GetArgumentProperties(IAttributeDeclaration<ArgumentAttribute> attr, ArgumentArity? arity)
+    private static IEnumerable<Property> GetArgumentProperties(IAttributeDeclaration<ArgumentAttribute> attr, ArgumentArityAttribute arity)
     {
         // Argument
-        if (arity.HasValue)
+        if (arity != null)
         {
-            // from ArgumentArityAttribute
-            yield return new Property(nameof(Argument.Arity), arity.Value);
+            yield return new Property(nameof(Argument.Arity), arity);
         }
         else if (attr.Value.ArityInternal.HasValue)
         {
-            // from ArgumentAttribute
             yield return new Property(nameof(Argument.Arity), attr.Value.ArityInternal.Value);
         }
 
@@ -247,13 +245,13 @@ internal static class CommandLineGenerator
             yield return prop;
     }
 
-    private static IEnumerable<Property> GetOptionProperties(IAttributeDeclaration<OptionAttribute> attr, ArgumentArity? arity)
+    private static IEnumerable<Property> GetOptionProperties(IAttributeDeclaration<OptionAttribute> attr, ArgumentArityAttribute arity)
     {
         // Option
-        if (arity.HasValue)
+        if (arity != null)
         {
             // from ArgumentArityAttribute
-            yield return new Property(nameof(Option.Arity), arity.Value);
+            yield return new Property(nameof(Option.Arity), arity);
         }
         else if (attr.Value.ArityInternal.HasValue)
         {
@@ -438,7 +436,7 @@ internal static class CommandLineGenerator
             case ArgumentArityEnum arityEnum:
                 return ConvertToArgumentArityLiteral(arityEnum);
 
-            case ArgumentArity arity:
+            case ArgumentArityAttribute arity:
                 return ConvertToArgumentArityLiteral(arity);
 
             case bool boolValue:
@@ -449,7 +447,7 @@ internal static class CommandLineGenerator
         }
     }
 
-    private static string ConvertToArgumentArityLiteral(ArgumentArity arity)
+    private static string ConvertToArgumentArityLiteral(ArgumentArityAttribute arity)
     {
         return $"new {Types.ArgumentArity}({arity.MinimumNumberOfValues}, {arity.MaximumNumberOfValues})";
     }
