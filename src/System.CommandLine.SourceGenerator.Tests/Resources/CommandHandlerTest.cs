@@ -5,8 +5,8 @@ using System.CommandLine.SourceGenerator.Common;
 
 namespace System.CommandLine.SourceGenerator.Tests;
 
-[RootCommand(Handler = typeof(StubHandler))]
-public class Stub
+[RootCommand(Handler = typeof(CommandHandlerTest_CommandHandler))]
+public class CommandHandlerTest
 {
     [GlobalOption("--global")]
     public bool GlobalProperty { get; set; }
@@ -41,11 +41,11 @@ public class Stub
     [ArgumentArity(2, 4)]
     public double DoubleProperty { get; set; }
 
-    [Command("sub", Aliases = new[] { "s", "su", "sub" }, Handler = typeof(StubSubHandler))]
-    public sealed class StubSub
+    [Command("sub", Aliases = new[] { "s", "su", "sub" }, Handler = typeof(CommandHandlerTest_Sub_CommandHandler))]
+    public sealed class Sub
     {
-        [Command("sub2", Handler = typeof(StubSubSubHandler))]
-        public struct StubSubSub
+        [Command("sub2", Handler = typeof(CommandHandlerTest_Sub_Sub2_CommandHandler))]
+        public struct Sub2
         {
             [Option("-A")]
             public string A { get; set; }
@@ -56,25 +56,25 @@ public class Stub
     }
 }
 
-public class StubHandler : ICommandHandler<Stub>
+public class CommandHandlerTest_CommandHandler : ICommandHandler<CommandHandlerTest>
 {
-    public Task<int> InvokeAsync(Stub command)
+    public Task<int> InvokeAsync(CommandHandlerTest command)
     {
         throw new NotImplementedException();
     }
 }
 
-public class StubSubHandler : ICommandHandler<Stub.StubSub>
+public class CommandHandlerTest_Sub_CommandHandler : ICommandHandler<CommandHandlerTest.Sub>
 {
-    public Task<int> InvokeAsync(Stub.StubSub command)
+    public Task<int> InvokeAsync(CommandHandlerTest.Sub command)
     {
         throw new NotImplementedException();
     }
 }
 
-public class StubSubSubHandler : ICommandHandler<Stub.StubSub.StubSubSub>
+public class CommandHandlerTest_Sub_Sub2_CommandHandler : ICommandHandler<CommandHandlerTest.Sub.Sub2>
 {
-    public Task<int> InvokeAsync(Stub.StubSub.StubSubSub command)
+    public Task<int> InvokeAsync(CommandHandlerTest.Sub.Sub2 command)
     {
         throw new NotImplementedException();
     }

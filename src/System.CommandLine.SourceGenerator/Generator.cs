@@ -17,9 +17,7 @@ public class Generator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CommandDeclaration>> commandDeclarationsProvier
             = context.SyntaxProvider
                 .CreateSyntaxProvider(
-                    static (node, _) => node
-                        is ClassDeclarationSyntax { AttributeLists.Count: > 0 }
-                        or StructDeclarationSyntax { AttributeLists.Count: > 0 },
+                    static (node, _) => IsSemanticTargetForGeneration(node),
                     static (ctx, _) => GetSemanticTargetForGeneration(ctx)
                 )
                 .Where(x => x is not null)
@@ -29,6 +27,28 @@ public class Generator : IIncrementalGenerator
             context.CompilationProvider.Combine(commandDeclarationsProvier),
             (spc, arg) => Execute(spc, arg.Left, arg.Right)
         );
+    }
+
+    private static bool IsSemanticTargetForGeneration(SyntaxNode node)
+    {
+        switch (node)
+        {
+            // class ~~          : O
+            // sealed class ~~   : O
+            // abstract class ~~ : X
+            case ClassDeclarationSyntax { AttributeLists.Count: > 0 } classDeclarationSyntax when
+                !classDeclarationSyntax.Modifiers.Any(x => x.IsKind(SyntaxKind.AbstractKeyword)):
+
+            // struct ~~          : O
+            // readonly struct ~~ : X
+            // ref struct ~~      : X
+            case StructDeclarationSyntax { AttributeLists.Count: > 0 } structDeclarationSyntax when
+                !structDeclarationSyntax.Modifiers.Any(x => x.IsKind(SyntaxKind.ReadOnlyKeyword) || x.IsKind(SyntaxKind.RefKeyword)):
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     private static CommandDeclaration GetSemanticTargetForGeneration(GeneratorSyntaxContext context)

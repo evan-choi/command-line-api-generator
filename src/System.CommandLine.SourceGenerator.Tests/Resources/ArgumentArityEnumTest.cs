@@ -3,7 +3,7 @@ using System.CommandLine.SourceGenerator.Common;
 namespace System.CommandLine.SourceGenerator.Tests;
 
 [RootCommand]
-public class Stub_ArgumentArity
+public class ArgumentArityEnumTest
 {
     [Option("--Zero", Arity = ArgumentArityEnum.Zero)]
     public bool Zero { get; set; }

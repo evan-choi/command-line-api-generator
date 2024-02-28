@@ -64,41 +64,57 @@ internal class CommandDeclaration
         TypeLoaderGeneratorSyntaxContext context,
         INamedTypeSymbol typeSymbol)
     {
-        foreach (var property in typeSymbol.GetMembers().OfType<IPropertySymbol>())
+        var visited = new HashSet<IPropertySymbol>(SymbolEqualityComparer.Default);
+
+        while (typeSymbol is not null)
         {
-            ImmutableArray<AttributeData> attributes = property.GetAttributes();
-
-            var optionAttribute = attributes
-                .FirstOrDefault(x => x.AttributeClass.Is(context.OptionAttributeType));
-
-            var globalOptionAttribute = attributes
-                .FirstOrDefault(x => x.AttributeClass.Is(context.GlobalOptionAttributeType));
-
-            var argumentAttribute = attributes
-                .FirstOrDefault(x => x.AttributeClass.Is(context.ArgumentAttributeType));
-
-            if (optionAttribute == null && globalOptionAttribute == null && argumentAttribute == null)
-                continue;
-
-            var argumentArity = attributes
-                .FirstOrDefault(x => x.AttributeClass.Is(context.ArgumentArityAttributeType))
-                ?.Create<ArgumentArityAttribute>();
-
-            if (optionAttribute is not null)
+            foreach (var property in typeSymbol.GetMembers().OfType<IPropertySymbol>())
             {
-                var attribute = new AttributeDeclaration<OptionAttribute>(optionAttribute);
-                yield return new OptionDeclaration(property, attribute, argumentArity);
+                if (!visited.Add(property))
+                    continue;
+
+                ImmutableArray<AttributeData> attributes = property.GetAttributes();
+
+                var optionAttribute = attributes
+                    .FirstOrDefault(x => x.AttributeClass.Is(context.OptionAttributeType));
+
+                var globalOptionAttribute = attributes
+                    .FirstOrDefault(x => x.AttributeClass.Is(context.GlobalOptionAttributeType));
+
+                var argumentAttribute = attributes
+                    .FirstOrDefault(x => x.AttributeClass.Is(context.ArgumentAttributeType));
+
+                if (optionAttribute == null && globalOptionAttribute == null && argumentAttribute == null)
+                    continue;
+
+                if (property.IsReadOnly)
+                    throw new Exception($"Property '{property.Name}' cannot be read-only. Mutable properties are required.");
+
+                if (property.IsOverride)
+                    visited.Add(property.OverriddenProperty);
+
+                var argumentArity = attributes
+                    .FirstOrDefault(x => x.AttributeClass.Is(context.ArgumentArityAttributeType))
+                    ?.Create<ArgumentArityAttribute>();
+
+                if (optionAttribute is not null)
+                {
+                    var attribute = new AttributeDeclaration<OptionAttribute>(optionAttribute);
+                    yield return new OptionDeclaration(property, attribute, argumentArity);
+                }
+                else if (globalOptionAttribute is not null)
+                {
+                    var attribute = new AttributeDeclaration<GlobalOptionAttribute>(globalOptionAttribute);
+                    yield return new OptionDeclaration(property, attribute, argumentArity);
+                }
+                else
+                {
+                    var attribute = new AttributeDeclaration<ArgumentAttribute>(argumentAttribute);
+                    yield return new ArgumentDeclaration(property, attribute, argumentArity);
+                }
             }
-            else if (globalOptionAttribute is not null)
-            {
-                var attribute = new AttributeDeclaration<GlobalOptionAttribute>(globalOptionAttribute);
-                yield return new OptionDeclaration(property, attribute, argumentArity);
-            }
-            else
-            {
-                var attribute = new AttributeDeclaration<ArgumentAttribute>(argumentAttribute);
-                yield return new ArgumentDeclaration(property, attribute, argumentArity);
-            }
+
+            typeSymbol = typeSymbol.BaseType;
         }
     }
 
