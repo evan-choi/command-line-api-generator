@@ -18,7 +18,7 @@ Install-Package Evan.System.CommandLine.SourceGenerator.Common
 [RootCommand(Handler = typeof(AppCommandHandler))]
 class AppCommand
 {
-    [Option('v', "verbose", Required = false, Description = "Set output to verbose messages.")]
+    [Option("verbose", IsRequired = false, Description = "Set output to verbose messages.")]
     public bool Verbose { get; set; }
 
     [Command("config")]
