@@ -41,3 +41,5 @@ jobs:
       with:
         release_name: Release ${{ inputs.VERSION }}
         tag_name: v${{ inputs.VERSION }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
