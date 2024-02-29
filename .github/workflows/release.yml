@@ -2,6 +2,9 @@ run-name: Release ${{ inputs.VERSION }}
 
 name: Release
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
