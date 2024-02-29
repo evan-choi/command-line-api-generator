@@ -21,7 +21,12 @@ namespace System.CommandLine.SourceGenerator.Tests
             var symbol = new global::System.CommandLine.Option<global::System.Int32>("--virtual-has-option-override", null);
             var symbol1 = new global::System.CommandLine.Option<global::System.Int32>("--virtual-no-option", null);
             var symbol2 = new global::System.CommandLine.Option<global::System.Int32>("--option", null);
-            var handlerAdapter = new DerviedTestCommandHandlerAdapter(options.Handler, symbol, symbol1, symbol2);
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.DerviedTest> handler = null;
+            if (options != null)
+                handler = options.Handler;
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new DerviedTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter

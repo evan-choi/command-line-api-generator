@@ -21,7 +21,12 @@ namespace System.CommandLine.SourceGenerator.Tests
         public static global::System.CommandLine.RootCommand Create(SubcommandsTestOptions options)
         {
             var symbol = new global::System.CommandLine.Option<global::System.Int32>("--option1", null);
-            var handlerAdapter = new SubcommandsTestCommandHandlerAdapter(options.Handler, symbol);
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.SubcommandsTest> handler = null;
+            if (options != null)
+                handler = options.Handler;
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new SubcommandsTestCommandHandlerAdapter(handler, symbol);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter

@@ -26,6 +26,8 @@ internal class CommandDeclaration
 
     public GeneratedTypeInfo CommandHandlerAdapterType { get; }
 
+    public string CommandHandlerTypeName => $"ICommandHandler<{TypeSymbol.ToFullyQualifiedDisplayString(true)}>";
+
     public CommandDeclaration(
         INamedTypeSymbol typeSymbol,
         IAttributeDeclaration<CommandAttribute> attribute,

@@ -40,10 +40,14 @@ namespace System.CommandLine.SourceGenerator.Tests
             {
                 Arity = new global::System.CommandLine.ArgumentArity(2, 4)
             };
-            var handler = options.Handler;
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest> handler = null;
+            if (options != null)
+                handler = options.Handler;
             if (handler == null)
                 handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_CommandHandler();
-            var handlerAdapter = new CommandHandlerTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4, symbol5);
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new CommandHandlerTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4, symbol5);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter

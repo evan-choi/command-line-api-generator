@@ -20,10 +20,14 @@ namespace System.CommandLine.SourceGenerator.Tests
         {
             var symbol = new global::System.CommandLine.Option<global::System.String>("-A", null);
             var symbol1 = new global::System.CommandLine.Option<global::System.String>("-B", null);
-            var handler = options.Handler;
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest.Sub.Sub2> handler = null;
+            if (options != null)
+                handler = options.Handler;
             if (handler == null)
                 handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_Sub_Sub2_CommandHandler();
-            var handlerAdapter = new Sub2CommandHandlerAdapter(handler, symbol, symbol1);
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new Sub2CommandHandlerAdapter(handler, symbol, symbol1);
             var cmd = new global::System.CommandLine.Command("sub2", null)
             {
                 Handler = handlerAdapter

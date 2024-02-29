@@ -47,7 +47,7 @@ internal static class CommandLineGenerator
         source.WriteLine($"{accessibility}class {command.OptionsType.Name}", true);
         source.OpenBrace();
 
-        source.WriteLine($"public ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> Handler {{ get; set; }}", true);
+        source.WriteLine($"public {command.CommandHandlerTypeName} Handler {{ get; set; }}", true);
 
         foreach (var subCommand in command.CommandDeclarations)
         {
@@ -171,29 +171,44 @@ internal static class CommandLineGenerator
             .Select(x => GenerateSymbolCreationCode(source, methodContext, x))
             .ToArray();
 
-        var handlerAdapterVariableName = methodContext.Declare("handlerAdapter", null);
+        // ICommandHandler<..>
+        var handlerVariableName = methodContext.Declare("handler", null);
+
+        source.WriteBlock(
+            $"""
+             {command.CommandHandlerTypeName} {handlerVariableName} = null;
+             if (options != null)
+                 {handlerVariableName} = options.Handler;
+             """,
+            true);
+
+        source.WriteLine();
 
         if (command.HandlerTypeSymbol is not null)
         {
-            var handlerVariableName = methodContext.Declare("handler", null);
-            var handlerAdapterArgs = string.Join(", ", symbolVariableNames.Prepend(handlerVariableName));
-
             source.WriteBlock(
                 $"""
-                 var {handlerVariableName} = options.Handler;
                  if ({handlerVariableName} == null)
                      {handlerVariableName} = new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}();
-                 var {handlerAdapterVariableName} = new {command.CommandHandlerAdapterType.Name}({handlerAdapterArgs});
                  """,
                 true);
 
             source.WriteLine();
         }
-        else
-        {
-            var handlerAdapterArgs = string.Join(", ", symbolVariableNames.Prepend("options.Handler"));
-            source.WriteLine($"var {handlerAdapterVariableName} = new {command.CommandHandlerAdapterType.Name}({handlerAdapterArgs});", true);
-        }
+
+        // ..CommandHandlerAdapter
+        var handlerAdapterVariableName = methodContext.Declare("handlerAdapter", null);
+        var handlerAdapterArgs = string.Join(", ", symbolVariableNames.Prepend(handlerVariableName));
+
+        source.WriteBlock(
+            $"""
+              {Types.ICommandHandler} {handlerAdapterVariableName} = null;
+              if ({handlerVariableName} != null)
+                  {handlerAdapterVariableName} = new {command.CommandHandlerAdapterType.Name}({handlerAdapterArgs});
+              """,
+            true);
+
+        source.WriteLine();
 
         // var cmd = new Command(..);
         var commandVariableName = methodContext.Declare("cmd", command);
@@ -363,7 +378,7 @@ internal static class CommandLineGenerator
         source.OpenBrace();
 
         // private readonly ICommandHandler<{Command}> _commandHandler;
-        source.WriteLine($"private readonly ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> _commandHandler;", true);
+        source.WriteLine($"private readonly {command.CommandHandlerTypeName} _commandHandler;", true);
 
         // private readonly IValueDescriptor<..> _v0;
         // private readonly IValueDescriptor<..> _v1;
@@ -397,7 +412,7 @@ internal static class CommandLineGenerator
          */
         var ctorArguments = symbolFields
             .Select(symbolField => $"{Types.IValueDescriptor}<{symbolField.Type}> {symbolField.ArgumentName}")
-            .Prepend($"ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> commandHandler")
+            .Prepend($"{command.CommandHandlerTypeName} commandHandler")
             .ToArray();
 
         if (ctorArguments.Length == 1)

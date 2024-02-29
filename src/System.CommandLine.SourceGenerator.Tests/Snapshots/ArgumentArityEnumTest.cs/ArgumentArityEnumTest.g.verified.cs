@@ -38,7 +38,12 @@ namespace System.CommandLine.SourceGenerator.Tests
             {
                 Arity = global::System.CommandLine.ArgumentArity.OneOrMore
             };
-            var handlerAdapter = new ArgumentArityEnumTestCommandHandlerAdapter(options.Handler, symbol, symbol1, symbol2, symbol3, symbol4);
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.ArgumentArityEnumTest> handler = null;
+            if (options != null)
+                handler = options.Handler;
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new ArgumentArityEnumTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter

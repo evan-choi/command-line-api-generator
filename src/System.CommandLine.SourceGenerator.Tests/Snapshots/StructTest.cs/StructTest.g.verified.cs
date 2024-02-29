@@ -19,10 +19,14 @@ namespace System.CommandLine.SourceGenerator.Tests
         public static global::System.CommandLine.RootCommand Create(StructTestOptions options)
         {
             var symbol = new global::System.CommandLine.Option<global::System.String>("--hello", null);
-            var handler = options.Handler;
+            ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.StructTest> handler = null;
+            if (options != null)
+                handler = options.Handler;
             if (handler == null)
                 handler = new global::System.CommandLine.SourceGenerator.Tests.StructTestHandler();
-            var handlerAdapter = new StructTestCommandHandlerAdapter(handler, symbol);
+            global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
+            if (handler != null)
+                handlerAdapter = new StructTestCommandHandlerAdapter(handler, symbol);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter
