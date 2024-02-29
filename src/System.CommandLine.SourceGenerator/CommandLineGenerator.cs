@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine.SourceGenerator.Common;
 using System.CommandLine.SourceGenerator.Models;
 using System.CommandLine.SourceGenerator.Extensions;
@@ -76,7 +78,18 @@ internal static class CommandLineGenerator
     {
         var commandType = command is RootCommandDeclaration ? Types.RootCommand : Types.Command;
 
-        source.WriteLine($"public static {commandType} Create()", true);
+        if (command.TypeSymbol.IsGenericType)
+        {
+            var typeParamNames = string.Join(", ", command.TypeSymbol.TypeParameters.Select(x => x.Name));
+
+            source.Write($"public static {commandType} Create<{typeParamNames}>()", true);
+            WriteGenericConstraint(source, command.TypeSymbol.TypeParameters);
+        }
+        else
+        {
+            source.WriteLine($"public static {commandType} Create()", true);
+        }
+
         source.OpenBrace();
 
         var methodContext = new MethodContext();
@@ -116,7 +129,11 @@ internal static class CommandLineGenerator
         if (command.HandlerTypeSymbol is not null)
         {
             var commandHandlerArgs = string.Join(", ", symbolVariableNames);
-            var commandHandlerCreationCode = $"new {command.TypeSymbol.Name}CommandHandler({commandHandlerArgs})";
+            var commandHandlerTypeParamNames = string.Join(", ", command.TypeSymbol.TypeParameters.Select(x => x.Name));
+
+            var commandHandlerCreationCode = command.TypeSymbol.IsGenericType
+                ? $"new {command.TypeSymbol.Name}CommandHandler<{commandHandlerTypeParamNames}>({commandHandlerArgs})"
+                : $"new {command.TypeSymbol.Name}CommandHandler({commandHandlerArgs})";
 
             commandProperties[nameof(Command.Handler)] = new RawLiteral(commandHandlerCreationCode);
         }
@@ -268,9 +285,22 @@ internal static class CommandLineGenerator
 
     private static void GenerateCommandHandlerClassDefinition(SourceTextBuilder source, CommandDeclaration command)
     {
+        var typeParams = command.TypeSymbol.IsGenericType
+            ? $"<{string.Join(", ", command.TypeSymbol.TypeParameters.Select(x => x.Name))}>"
+            : null;
+
         var className = $"{command.TypeSymbol.Name}CommandHandler";
 
-        source.WriteLine($"private sealed class {className} : {Types.ICommandHandler}", true);
+        if (command.TypeSymbol.IsGenericType)
+        {
+            source.Write($"private sealed class {className}{typeParams} : {Types.ICommandHandler}", true);
+            WriteGenericConstraint(source, command.TypeSymbol.TypeParameters);
+        }
+        else
+        {
+            source.WriteLine($"private sealed class {className} : {Types.ICommandHandler}", true);
+        }
+
         source.OpenBrace();
 
         // private readonly IValueDescriptor<..> _v0;
@@ -368,7 +398,7 @@ internal static class CommandLineGenerator
 
         WriteClassCreationCode(
             source,
-            command.TypeSymbol.ToFullyQualifiedDisplayString(true),
+            $"{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}{typeParams}",
             Enumerable.Empty<object>(),
             symbolFields.ToDictionary(
                 x => x.PropertyName,
@@ -376,7 +406,7 @@ internal static class CommandLineGenerator
             )
         );
 
-        source.WriteLine($"var handler = new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}();", true);
+        source.WriteLine($"var handler = new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}{typeParams}();", true);
         source.WriteLine("return handler.InvokeAsync(command);", true);
 
         source.CloseBrace(); // InvokeAsync
@@ -418,6 +448,64 @@ internal static class CommandLineGenerator
         }
 
         source.WriteLine(";");
+    }
+
+    private static void WriteGenericConstraint(SourceTextBuilder source, IEnumerable<ITypeParameterSymbol> typeParameters)
+    {
+        ITypeParameterSymbol[] constraintParameters = typeParameters
+            .Where(x =>
+                x is { ConstraintTypes.Length: > 0 } ||
+                x.HasConstructorConstraint ||
+                x.HasNotNullConstraint ||
+                x.HasReferenceTypeConstraint ||
+                x.HasUnmanagedTypeConstraint ||
+                x.HasValueTypeConstraint
+            )
+            .ToArray();
+
+        switch (constraintParameters.Length)
+        {
+            case 0:
+                return;
+
+            case 1:
+                source.Write(" ");
+                break;
+        }
+
+        foreach (var typeParameter in constraintParameters)
+        {
+            if (constraintParameters.Length >= 2)
+            {
+                source.WriteLine();
+                source.Indent(1);
+            }
+
+            source.Write($"where {typeParameter.Name} : ");
+            source.WriteJoin(", ", GetConstraintTokens(typeParameter));
+        }
+
+        source.WriteLine();
+
+        return;
+
+        static IEnumerable<string> GetConstraintTokens(ITypeParameterSymbol typeParameter)
+        {
+            if (typeParameter.HasNotNullConstraint)
+                yield return "notnull";
+            else if (typeParameter.HasReferenceTypeConstraint)
+                yield return "class";
+            else if (typeParameter.HasUnmanagedTypeConstraint)
+                yield return "unmanaged";
+            else if (typeParameter.HasValueTypeConstraint)
+                yield return "struct";
+
+            foreach (var constraintType in typeParameter.ConstraintTypes.Select(x => x.ToFullyQualifiedDisplayString(true)))
+                yield return constraintType;
+
+            if (typeParameter.HasConstructorConstraint)
+                yield return "new()";
+        }
     }
 
     private static string ConvertToLiteral(object value)
