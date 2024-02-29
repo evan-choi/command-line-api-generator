@@ -32,3 +32,9 @@ jobs:
     - name: Push to NuGet
       working-directory: Artifacts
       run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+
+    - name: GitHub Tag & Release
+      uses: avakar/tag-and-release@v1
+      with:
+        release_name: Release ${{ inputs.VERSION }}
+        tag_name: v${{ inputs.VERSION }}
