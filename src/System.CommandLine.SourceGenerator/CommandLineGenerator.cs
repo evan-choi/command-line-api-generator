@@ -90,8 +90,7 @@ internal static class CommandLineGenerator
 
         source.OpenBrace();
 
-        var methodContext = new MethodContext();
-        var commandVariableName = GenerateCommandCreationCode(source, methodContext, command, commandType);
+        var commandVariableName = GenerateCommandCreationCode(source, command, commandType);
 
         source.WriteLine($"return {commandVariableName};", true);
 
@@ -109,10 +108,11 @@ internal static class CommandLineGenerator
      */
     private static string GenerateCommandCreationCode(
         SourceTextBuilder source,
-        MethodContext methodContext,
         CommandDeclaration command,
         string commandType)
     {
+        var methodContext = new MethodContext();
+
         var symbolVariableNames = command.SymbolDeclarations
             .Select(x => GenerateSymbolCreationCode(source, methodContext, x))
             .ToArray();
