@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.CommandLine.SourceGenerator.Common;
 using System.CommandLine.SourceGenerator.Models;
 using System.CommandLine.SourceGenerator.Extensions;
@@ -124,7 +122,8 @@ internal static class CommandLineGenerator
         source.Write($"var {commandVariableName} = ", true);
 
         var commandProperties = new Dictionary<string, object>(command.Attribute.NamedArguments);
-        commandProperties.Remove(nameof(Command.Aliases));
+        commandProperties.Remove(nameof(CommandAttribute.Aliases));
+        commandProperties.Remove(nameof(CommandAttribute.Subcommands));
 
         if (command.HandlerTypeSymbol is not null)
         {

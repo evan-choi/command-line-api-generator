@@ -7,6 +7,8 @@ public class CommandAttribute : IdentifierSymbolAttribute
 
     public Type Handler { get; set; }
 
+    public Type[] Subcommands { get; set; }
+
     public CommandAttribute(string name, string description = null) : base(name, description)
     {
     }

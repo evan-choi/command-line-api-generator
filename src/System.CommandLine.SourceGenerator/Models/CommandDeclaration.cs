@@ -37,7 +37,7 @@ internal class CommandDeclaration
     public static CommandDeclaration Create(TypeLoaderGeneratorSyntaxContext context, INamedTypeSymbol typeSymbol, AttributeData attributeData)
     {
         IPropertyBasedSymbolDeclaration[] symbolDeclarations = GetPropertyBasedSymbolDeclarations(context, typeSymbol).ToArray();
-        CommandDeclaration[] commandDeclarations = GetCommandDeclarations(context, typeSymbol).ToArray();
+        CommandDeclaration[] commandDeclarations = GetCommandDeclarations(context, typeSymbol, attributeData).ToArray();
 
         var handlerTypeSymbol = (INamedTypeSymbol)attributeData.NamedArguments
             .FirstOrDefault(x => x.Key == nameof(CommandAttribute.Handler))
@@ -48,6 +48,7 @@ internal class CommandDeclaration
         {
             var attribute = new AttributeDeclaration<RootCommandAttribute>(attributeData);
             attribute.NamedArguments.Remove(nameof(CommandAttribute.Handler));
+            attribute.NamedArguments.Remove(nameof(CommandAttribute.Subcommands));
 
             return new RootCommandDeclaration(typeSymbol, attribute, handlerTypeSymbol, symbolDeclarations, commandDeclarations);
         }
@@ -55,6 +56,7 @@ internal class CommandDeclaration
         {
             var attribute = new AttributeDeclaration<CommandAttribute>(attributeData);
             attribute.NamedArguments.Remove(nameof(CommandAttribute.Handler));
+            attribute.NamedArguments.Remove(nameof(CommandAttribute.Subcommands));
 
             return new CommandDeclaration(typeSymbol, attribute, handlerTypeSymbol, symbolDeclarations, commandDeclarations);
         }
@@ -118,14 +120,22 @@ internal class CommandDeclaration
         }
     }
 
-    private static IEnumerable<CommandDeclaration> GetCommandDeclarations(TypeLoaderGeneratorSyntaxContext context, INamedTypeSymbol typeSymbol)
+    private static IEnumerable<CommandDeclaration> GetCommandDeclarations(TypeLoaderGeneratorSyntaxContext context, INamedTypeSymbol typeSymbol, AttributeData attributeData)
     {
-        foreach (var nestedTypeSymbol in typeSymbol.GetTypeMembers())
+        var subcommandsTypedConstant = attributeData.NamedArguments
+            .FirstOrDefault(x => x.Key == nameof(CommandAttribute.Subcommands))
+            .Value;
+
+        IEnumerable<INamedTypeSymbol> subcommads = subcommandsTypedConstant is { Kind: TypedConstantKind.Array }
+            ? subcommandsTypedConstant.Values.Select(x => (INamedTypeSymbol)x.Value)
+            : Enumerable.Empty<INamedTypeSymbol>();
+
+        foreach (var nestedTypeSymbol in subcommads.Concat(typeSymbol.GetTypeMembers()))
         {
-            if (!nestedTypeSymbol.TryGetCusttomAttribute(context.CommandAttributeType, out var attributeData))
+            if (!nestedTypeSymbol.TryGetCusttomAttribute(context.CommandAttributeType, out var subCommadAttributeData))
                 continue;
 
-            yield return Create(context, nestedTypeSymbol, attributeData);
+            yield return Create(context, nestedTypeSymbol, subCommadAttributeData);
         }
     }
 }
