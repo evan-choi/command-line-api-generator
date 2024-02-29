@@ -1,5 +1,5 @@
 <Project>
     <ItemGroup>
-        <Analyzer Include="$(MSBuildThisFileDirectory)..\lib\netstandard2.0\System.CommandLine.SourceGenerator.dll" />
+        <Analyzer Include="$(MSBuildThisFileDirectory)../analyzers/dotnet/cs/System.CommandLine.SourceGenerator.dll" />
     </ItemGroup>
 </Project>
