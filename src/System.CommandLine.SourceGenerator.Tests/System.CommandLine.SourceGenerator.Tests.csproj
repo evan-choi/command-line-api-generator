@@ -28,4 +28,8 @@
         <ProjectReference Include="..\System.CommandLine.SourceGenerator\System.CommandLine.SourceGenerator.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Snapshots\" />
+    </ItemGroup>
+
 </Project>

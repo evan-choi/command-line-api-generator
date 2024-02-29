@@ -4,30 +4,47 @@ using global::System.CommandLine.SourceGenerator.Common;
 
 namespace System.CommandLine.SourceGenerator.Tests
 {
+    public class Sub2Options
+    {
+        public ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest.Sub.Sub2> Handler { get; set; }
+    }
+
     public static class Sub2Factory
     {
         public static global::System.CommandLine.Command Create()
         {
+            return Create(null);
+        }
+
+        public static global::System.CommandLine.Command Create(Sub2Options options)
+        {
             var symbol = new global::System.CommandLine.Option<global::System.String>("-A", null);
             var symbol1 = new global::System.CommandLine.Option<global::System.String>("-B", null);
+            var handler = options.Handler;
+            if (handler == null)
+                handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_Sub_Sub2_CommandHandler();
+            var handlerAdapter = new Sub2CommandHandlerAdapter(handler, symbol, symbol1);
             var cmd = new global::System.CommandLine.Command("sub2", null)
             {
-                Handler = new Sub2CommandHandler(symbol, symbol1)
+                Handler = handlerAdapter
             };
             cmd.AddOption(symbol);
             cmd.AddOption(symbol1);
             return cmd;
         }
 
-        private sealed class Sub2CommandHandler : global::System.CommandLine.Invocation.ICommandHandler
+        private sealed class Sub2CommandHandlerAdapter : global::System.CommandLine.Invocation.ICommandHandler
         {
+            private readonly ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest.Sub.Sub2> _commandHandler;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.String> _symbolA;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.String> _symbolB;
 
-            public Sub2CommandHandler(
+            public Sub2CommandHandlerAdapter(
+                ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest.Sub.Sub2> commandHandler,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.String> symbolA,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.String> symbolB)
             {
+                _commandHandler = commandHandler;
                 _symbolA = symbolA;
                 _symbolB = symbolB;
             }
@@ -44,8 +61,7 @@ namespace System.CommandLine.SourceGenerator.Tests
                     A = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.String>(_symbolA, context),
                     B = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.String>(_symbolB, context)
                 };
-                var handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_Sub_Sub2_CommandHandler();
-                return handler.InvokeAsync(command);
+                return _commandHandler.InvokeAsync(command);
             }
         }
     }

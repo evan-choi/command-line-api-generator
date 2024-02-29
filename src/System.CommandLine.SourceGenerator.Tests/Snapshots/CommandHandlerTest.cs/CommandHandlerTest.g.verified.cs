@@ -4,9 +4,21 @@ using global::System.CommandLine.SourceGenerator.Common;
 
 namespace System.CommandLine.SourceGenerator.Tests
 {
+    public class CommandHandlerTestOptions
+    {
+        public ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest> Handler { get; set; }
+
+        public SubOptions SubOptions { get; set; }
+    }
+
     public static class CommandHandlerTestFactory
     {
         public static global::System.CommandLine.RootCommand Create()
+        {
+            return Create(null);
+        }
+
+        public static global::System.CommandLine.RootCommand Create(CommandHandlerTestOptions options)
         {
             var symbol = new global::System.CommandLine.Option<global::System.Boolean>("--global", null);
             var symbol1 = new global::System.CommandLine.Option<global::System.String>("--string", null);
@@ -28,9 +40,13 @@ namespace System.CommandLine.SourceGenerator.Tests
             {
                 Arity = new global::System.CommandLine.ArgumentArity(2, 4)
             };
+            var handler = options.Handler;
+            if (handler == null)
+                handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_CommandHandler();
+            var handlerAdapter = new CommandHandlerTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4, symbol5);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
-                Handler = new CommandHandlerTestCommandHandler(symbol, symbol1, symbol2, symbol3, symbol4, symbol5)
+                Handler = handlerAdapter
             };
             cmd.AddGlobalOption(symbol);
             cmd.AddOption(symbol1);
@@ -38,12 +54,20 @@ namespace System.CommandLine.SourceGenerator.Tests
             cmd.AddOption(symbol3);
             cmd.AddOption(symbol4);
             cmd.AddArgument(symbol5);
-            cmd.AddCommand(global::System.CommandLine.SourceGenerator.Tests.SubFactory.Create());
+            if (options != null && options.SubOptions != null)
+            {
+                cmd.AddCommand(SubFactory.Create(options.SubOptions));
+            }
+            else
+            {
+                cmd.AddCommand(SubFactory.Create());
+            }
             return cmd;
         }
 
-        private sealed class CommandHandlerTestCommandHandler : global::System.CommandLine.Invocation.ICommandHandler
+        private sealed class CommandHandlerTestCommandHandlerAdapter : global::System.CommandLine.Invocation.ICommandHandler
         {
+            private readonly ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest> _commandHandler;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolGlobalProperty;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.String> _symbolStringProperty;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.String[]> _symbolStringArrayProperty;
@@ -51,7 +75,8 @@ namespace System.CommandLine.SourceGenerator.Tests
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Int32?> _symbolNullableIntProperty;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Double> _symbolDoubleProperty;
 
-            public CommandHandlerTestCommandHandler(
+            public CommandHandlerTestCommandHandlerAdapter(
+                ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest> commandHandler,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolGlobalProperty,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.String> symbolStringProperty,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.String[]> symbolStringArrayProperty,
@@ -59,6 +84,7 @@ namespace System.CommandLine.SourceGenerator.Tests
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.Int32?> symbolNullableIntProperty,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.Double> symbolDoubleProperty)
             {
+                _commandHandler = commandHandler;
                 _symbolGlobalProperty = symbolGlobalProperty;
                 _symbolStringProperty = symbolStringProperty;
                 _symbolStringArrayProperty = symbolStringArrayProperty;
@@ -83,8 +109,7 @@ namespace System.CommandLine.SourceGenerator.Tests
                     NullableIntProperty = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Int32?>(_symbolNullableIntProperty, context),
                     DoubleProperty = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Double>(_symbolDoubleProperty, context)
                 };
-                var handler = new global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest_CommandHandler();
-                return handler.InvokeAsync(command);
+                return _commandHandler.InvokeAsync(command);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -7,13 +8,15 @@ namespace System.CommandLine.SourceGenerator.Tests;
 
 public class GeneratorTests
 {
-    [Test]
-    public Task RootCommand()
+    public static IEnumerable<TestCaseData> TestFiles => ResourceManager.GetResourceNames()
+        .Where(x => x.EndsWith(".cs"))
+        .Select(x => x[(ResourceManager.Directory.Length + 1)..])
+        .Select(x => new TestCaseData(x) { TestName = x });
+
+    [TestCaseSource(nameof(TestFiles))]
+    public Task Generate(string testFile)
     {
-        string[] sources = ResourceManager.GetResourceNames()
-            .Where(x => x.EndsWith(".cs"))
-            .Select(ResourceManager.GetString)
-            .ToArray();
+        var source = ResourceManager.GetString(testFile);
 
         Assembly[] referenceAssemblies =
         [
@@ -24,7 +27,9 @@ public class GeneratorTests
         ];
 
         return SourceGeneratorDriver
-            .Verify<Generator>(sources, referenceAssemblies)
+            .Verify<Generator>(new[] { source }, referenceAssemblies)
+            .UseUniqueDirectory()
+            .UseFileName(testFile)
             .UseDirectory("Snapshots");
     }
 }

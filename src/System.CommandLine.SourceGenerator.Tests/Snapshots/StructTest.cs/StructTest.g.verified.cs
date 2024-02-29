@@ -4,26 +4,43 @@ using global::System.CommandLine.SourceGenerator.Common;
 
 namespace System.CommandLine.SourceGenerator.Tests
 {
+    public class StructTestOptions
+    {
+        public ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.StructTest> Handler { get; set; }
+    }
+
     public static class StructTestFactory
     {
         public static global::System.CommandLine.RootCommand Create()
         {
+            return Create(null);
+        }
+
+        public static global::System.CommandLine.RootCommand Create(StructTestOptions options)
+        {
             var symbol = new global::System.CommandLine.Option<global::System.String>("--hello", null);
+            var handler = options.Handler;
+            if (handler == null)
+                handler = new global::System.CommandLine.SourceGenerator.Tests.StructTestHandler();
+            var handlerAdapter = new StructTestCommandHandlerAdapter(handler, symbol);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
-                Handler = new StructTestCommandHandler(symbol)
+                Handler = handlerAdapter
             };
             cmd.AddOption(symbol);
             return cmd;
         }
 
-        private sealed class StructTestCommandHandler : global::System.CommandLine.Invocation.ICommandHandler
+        private sealed class StructTestCommandHandlerAdapter : global::System.CommandLine.Invocation.ICommandHandler
         {
+            private readonly ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.StructTest> _commandHandler;
             private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.String> _symbolHello;
 
-            public StructTestCommandHandler(
+            public StructTestCommandHandlerAdapter(
+                ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.StructTest> commandHandler,
                 global::System.CommandLine.Binding.IValueDescriptor<global::System.String> symbolHello)
             {
+                _commandHandler = commandHandler;
                 _symbolHello = symbolHello;
             }
 
@@ -38,8 +55,7 @@ namespace System.CommandLine.SourceGenerator.Tests
                 {
                     Hello = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.String>(_symbolHello, context)
                 };
-                var handler = new global::System.CommandLine.SourceGenerator.Tests.StructTestHandler();
-                return handler.InvokeAsync(command);
+                return _commandHandler.InvokeAsync(command);
             }
         }
     }

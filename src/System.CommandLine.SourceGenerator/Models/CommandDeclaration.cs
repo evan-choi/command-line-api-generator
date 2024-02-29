@@ -20,6 +20,12 @@ internal class CommandDeclaration
 
     public INamedTypeSymbol HandlerTypeSymbol { get; }
 
+    public GeneratedTypeInfo OptionsType { get; }
+
+    public GeneratedTypeInfo FactoryType { get; }
+
+    public GeneratedTypeInfo CommandHandlerAdapterType { get; }
+
     public CommandDeclaration(
         INamedTypeSymbol typeSymbol,
         IAttributeDeclaration<CommandAttribute> attribute,
@@ -32,6 +38,10 @@ internal class CommandDeclaration
         HandlerTypeSymbol = handlerTypeSymbol;
         SymbolDeclarations = symbolDeclarations;
         CommandDeclarations = commandDeclarations;
+
+        OptionsType = new GeneratedTypeInfo(typeSymbol, "Options");
+        FactoryType = new GeneratedTypeInfo(typeSymbol, "Factory");
+        CommandHandlerAdapterType = new GeneratedTypeInfo(typeSymbol, "CommandHandlerAdapter");
     }
 
     public static CommandDeclaration Create(TypeLoaderGeneratorSyntaxContext context, INamedTypeSymbol typeSymbol, AttributeData attributeData)

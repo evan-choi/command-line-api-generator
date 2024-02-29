@@ -20,17 +20,18 @@ internal static class CommandLineGenerator
         source.WriteLine("using global::System.CommandLine.SourceGenerator.Common;");
         source.WriteLine();
 
-        if (command.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
-        {
-            GenerateFactoryClassDefinition(command, source);
-        }
-        else
+        if (!command.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
         {
             source.Write("namespace ", true).WriteLine(command.TypeSymbol.ContainingNamespace.ToFullyQualifiedDisplayString());
             source.OpenBrace();
-            GenerateFactoryClassDefinition(command, source);
-            source.CloseBrace();
         }
+
+        GenerateOptionsClassDefinition(command, source);
+        source.WriteLine();
+        GenerateFactoryClassDefinition(command, source);
+
+        if (!command.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
+            source.CloseBrace();
 
         var hitName = $"{command.TypeSymbol.Name}.g.cs";
 
@@ -39,34 +40,55 @@ internal static class CommandLineGenerator
             .Append((hitName, source.Build()));
     }
 
-    /*
-     <accessibility> static class ~~Factory
-     {
-         << GenerateCommandFactoryCreateMethod >>
-         << GenerateCommandHandlerClassDefinition >>
-     }
-     */
-    private static void GenerateFactoryClassDefinition(CommandDeclaration command, SourceTextBuilder source)
+    private static void GenerateOptionsClassDefinition(CommandDeclaration command, SourceTextBuilder source)
     {
-        var className = $"{command.TypeSymbol.Name}Factory";
         var accessibility = ConverToString(command.TypeSymbol.DeclaredAccessibility);
 
-        source.WriteLine($"{accessibility}static class {className}", true);
+        source.WriteLine($"{accessibility}class {command.OptionsType.Name}", true);
         source.OpenBrace();
 
-        GenerateCommandFactoryCreateMethod(source, command);
+        source.WriteLine($"public ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> Handler {{ get; set; }}", true);
 
-        if (command.HandlerTypeSymbol is not null)
+        foreach (var subCommand in command.CommandDeclarations)
         {
+            var subOptionsType = subCommand.OptionsType.GetQualifiedNameBy(command.TypeSymbol);
+            var subOptionsName = subCommand.OptionsType.Name;
+
             source.WriteLine();
-            GenerateCommandHandlerClassDefinition(source, command);
+            source.WriteLine($"public {subOptionsType} {subOptionsName} {{ get; set; }}", true);
         }
 
         source.CloseBrace();
     }
 
     /*
+     <accessibility> static class ~~Factory
+     {
+         << GenerateCommandFactoryCreateMethod >>
+         << GenerateCommandHandlerAdapterClassDefinition >>
+     }
+     */
+    private static void GenerateFactoryClassDefinition(CommandDeclaration command, SourceTextBuilder source)
+    {
+        var accessibility = ConverToString(command.TypeSymbol.DeclaredAccessibility);
+
+        source.WriteLine($"{accessibility}static class {command.FactoryType.Name}", true);
+        source.OpenBrace();
+
+        GenerateCommandFactoryCreateMethod(source, command);
+        source.WriteLine();
+        GenerateCommandHandlerAdapterClassDefinition(source, command);
+
+        source.CloseBrace();
+    }
+
+    /*
      public static RootCommand Create()
+     {
+         return Create(null);
+     }
+
+     public static RootCommand Create(~~Options options)
      {
          <name> = << GenerateCommandCreationCode >>
          return <name>;
@@ -76,14 +98,57 @@ internal static class CommandLineGenerator
     {
         var commandType = command is RootCommandDeclaration ? Types.RootCommand : Types.Command;
 
-        source.WriteLine($"public static {commandType} Create()", true);
+        source.WriteBlock(
+            $$"""
+              public static {{commandType}} Create()
+              {
+                  return Create(null);
+              }
+              """
+            , true);
+
+        source.WriteLine();
+
+        //
+
+        source.WriteLine();
+
+        //
+
+        source.WriteLine($"public static {commandType} Create({command.OptionsType.Name} options)", true);
         source.OpenBrace();
 
         var commandVariableName = GenerateCommandCreationCode(source, command, commandType);
-
         source.WriteLine($"return {commandVariableName};", true);
 
         source.CloseBrace();
+    }
+
+    private static string GenerateOptionsCreationCode(SourceTextBuilder source, CommandDeclaration command)
+    {
+        return GenerateCreationCode(source, new MethodContext(), command);
+
+        static string GenerateCreationCode(SourceTextBuilder source, MethodContext methodContext, CommandDeclaration command)
+        {
+            var optionsVariableName = methodContext.Declare("options", null);
+            var optionsProperties = new Dictionary<string, object>();
+
+            // sub
+            foreach (var subCommand in command.CommandDeclarations)
+            {
+                var subCommandVariableName = GenerateCreationCode(source, methodContext, subCommand);
+                optionsProperties[subCommand.OptionsType.Name] = new RawLiteral(subCommandVariableName);
+            }
+
+            // main
+            if (command.HandlerTypeSymbol is not null)
+                optionsProperties["Handler"] = new RawLiteral($"new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}()");
+
+            source.Write($"var {optionsVariableName} = ", true);
+            WriteClassCreationCode(source, command.OptionsType.Name, Enumerable.Empty<object>(), optionsProperties);
+
+            return optionsVariableName;
+        }
     }
 
     /*
@@ -106,6 +171,30 @@ internal static class CommandLineGenerator
             .Select(x => GenerateSymbolCreationCode(source, methodContext, x))
             .ToArray();
 
+        var handlerAdapterVariableName = methodContext.Declare("handlerAdapter", null);
+
+        if (command.HandlerTypeSymbol is not null)
+        {
+            var handlerVariableName = methodContext.Declare("handler", null);
+            var handlerAdapterArgs = string.Join(", ", symbolVariableNames.Prepend(handlerVariableName));
+
+            source.WriteBlock(
+                $"""
+                 var {handlerVariableName} = options.Handler;
+                 if ({handlerVariableName} == null)
+                     {handlerVariableName} = new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}();
+                 var {handlerAdapterVariableName} = new {command.CommandHandlerAdapterType.Name}({handlerAdapterArgs});
+                 """,
+                true);
+
+            source.WriteLine();
+        }
+        else
+        {
+            var handlerAdapterArgs = string.Join(", ", symbolVariableNames.Prepend("options.Handler"));
+            source.WriteLine($"var {handlerAdapterVariableName} = new {command.CommandHandlerAdapterType.Name}({handlerAdapterArgs});", true);
+        }
+
         // var cmd = new Command(..);
         var commandVariableName = methodContext.Declare("cmd", command);
         source.Write($"var {commandVariableName} = ", true);
@@ -113,14 +202,7 @@ internal static class CommandLineGenerator
         var commandProperties = new Dictionary<string, object>(command.Attribute.NamedArguments);
         commandProperties.Remove(nameof(CommandAttribute.Aliases));
         commandProperties.Remove(nameof(CommandAttribute.Subcommands));
-
-        if (command.HandlerTypeSymbol is not null)
-        {
-            var commandHandlerArgs = string.Join(", ", symbolVariableNames);
-            var commandHandlerCreationCode = $"new {command.TypeSymbol.Name}CommandHandler({commandHandlerArgs})";
-
-            commandProperties[nameof(Command.Handler)] = new RawLiteral(commandHandlerCreationCode);
-        }
+        commandProperties[nameof(Command.Handler)] = new RawLiteral(handlerAdapterVariableName);
 
         WriteClassCreationCode(
             source,
@@ -158,15 +240,23 @@ internal static class CommandLineGenerator
         // cmd.AddCommand( SubCommandFactory.Create() );
         foreach (var subCommand in command.CommandDeclarations)
         {
-            var subFactoryType = $"{subCommand.TypeSymbol.Name}Factory";
+            var subFactoryType = subCommand.FactoryType.GetQualifiedNameBy(command.TypeSymbol);
+            var subOptionsAccessor = $"options.{subCommand.OptionsType.Name}";
 
-            if (!subCommand.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
-            {
-                var subFactoryNamespace = subCommand.TypeSymbol.ContainingNamespace.ToFullyQualifiedDisplayString(true);
-                subFactoryType = $"{subFactoryNamespace}.{subFactoryType}";
-            }
+            source.WriteBlock(
+                $$"""
+                  if (options != null && {{subOptionsAccessor}} != null)
+                  {
+                      {{commandVariableName}}.{{nameof(Command.AddCommand)}}({{subFactoryType}}.Create({{subOptionsAccessor}}));
+                  }
+                  else
+                  {
+                      {{commandVariableName}}.{{nameof(Command.AddCommand)}}({{subFactoryType}}.Create());
+                  }
+                  """,
+                true);
 
-            source.WriteLine($"{commandVariableName}.{nameof(Command.AddCommand)}({subFactoryType}.Create());", true);
+            source.WriteLine();
         }
 
         return commandVariableName;
@@ -267,12 +357,13 @@ internal static class CommandLineGenerator
         }
     }
 
-    private static void GenerateCommandHandlerClassDefinition(SourceTextBuilder source, CommandDeclaration command)
+    private static void GenerateCommandHandlerAdapterClassDefinition(SourceTextBuilder source, CommandDeclaration command)
     {
-        var className = $"{command.TypeSymbol.Name}CommandHandler";
-
-        source.WriteLine($"private sealed class {className} : {Types.ICommandHandler}", true);
+        source.WriteLine($"private sealed class {command.CommandHandlerAdapterType.Name} : {Types.ICommandHandler}", true);
         source.OpenBrace();
+
+        // private readonly ICommandHandler<{Command}> _commandHandler;
+        source.WriteLine($"private readonly ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> _commandHandler;", true);
 
         // private readonly IValueDescriptor<..> _v0;
         // private readonly IValueDescriptor<..> _v1;
@@ -287,16 +378,14 @@ internal static class CommandLineGenerator
             })
             .ToArray();
 
-        if (symbolFields.Length > 0)
-        {
-            foreach (var symbolField in symbolFields)
-                source.WriteLine($"private readonly {Types.IValueDescriptor}<{symbolField.Type}> {symbolField.FieldName};", true);
+        foreach (var symbolField in symbolFields)
+            source.WriteLine($"private readonly {Types.IValueDescriptor}<{symbolField.Type}> {symbolField.FieldName};", true);
 
-            source.WriteLine();
-        }
+        source.WriteLine();
 
         /*
          public ..CommandHandler(
+            ICommandHandler<{Command}> commandHandler,
              IValueDescriptor<..> symbolXX,
              IValueDescriptor<..> symbolXX,
              ..)
@@ -306,28 +395,39 @@ internal static class CommandLineGenerator
              ..
          }
          */
-        if (symbolFields.Length > 0)
-        {
-            source.WriteLine($"public {className}(", true);
+        var ctorArguments = symbolFields
+            .Select(symbolField => $"{Types.IValueDescriptor}<{symbolField.Type}> {symbolField.ArgumentName}")
+            .Prepend($"ICommandHandler<{command.TypeSymbol.ToFullyQualifiedDisplayString(true)}> commandHandler")
+            .ToArray();
 
-            for (int i = 0; i < symbolFields.Length; i++)
+        if (ctorArguments.Length == 1)
+        {
+            source.WriteLine($"public {command.CommandHandlerAdapterType.Name}({ctorArguments[0]})", true);
+        }
+        else
+        {
+            source.WriteLine($"public {command.CommandHandlerAdapterType.Name}(", true);
+
+            for (int i = 0; i < ctorArguments.Length; i++)
             {
                 if (i > 0)
                     source.WriteLine(",");
 
-                source.Indent(1).Write($"{Types.IValueDescriptor}<{symbolFields[i].Type}> {symbolFields[i].ArgumentName}");
+                source.Indent(1).Write(ctorArguments[i]);
             }
 
             source.WriteLine(")");
-
-            source.OpenBrace();
-
-            foreach (var symbolField in symbolFields)
-                source.WriteLine($"{symbolField.FieldName} = {symbolField.ArgumentName};", true);
-
-            source.CloseBrace();
-            source.WriteLine();
         }
+
+        source.OpenBrace();
+
+        source.WriteLine("_commandHandler = commandHandler;", true);
+
+        foreach (var symbolField in symbolFields)
+            source.WriteLine($"{symbolField.FieldName} = {symbolField.ArgumentName};", true);
+
+        source.CloseBrace();
+        source.WriteLine();
 
         /*
          int Invoke(InvocationContext context)
@@ -377,8 +477,7 @@ internal static class CommandLineGenerator
             )
         );
 
-        source.WriteLine($"var handler = new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}();", true);
-        source.WriteLine("return handler.InvokeAsync(command);", true);
+        source.WriteLine("return _commandHandler.InvokeAsync(command);", true);
 
         source.CloseBrace(); // InvokeAsync
         source.CloseBrace(); // class
