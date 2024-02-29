@@ -41,10 +41,6 @@
             <PackagePath>analyzers/dotnet/cs</PackagePath>
             <Visible>false</Visible>
         </None>
-        <None Include="buildTransitive/**/*.targets">
-            <Pack>true</Pack>
-            <PackagePath>buildTransitive</PackagePath>
-        </None>
     </ItemGroup>
 
     <ItemGroup>
