@@ -16,7 +16,7 @@
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
         <PackageReference Include="Verify.NUnit" Version="23.2.1" />
         <PackageReference Include="Verify.SourceGenerators" Version="2.2.0" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" PrivateAssets="All" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,11 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\System.CommandLine.SourceGenerator\System.CommandLine.SourceGenerator.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Snapshots\" />
+        <ProjectReference Include="..\System.CommandLine.SourceGenerator\System.CommandLine.SourceGenerator.csproj" />
     </ItemGroup>
 
 </Project>
