@@ -5,18 +5,33 @@ namespace System.CommandLine.SourceGenerator.Tests;
 [RootCommand]
 public class ArgumentArityEnumTest
 {
-    [Option("--Zero", Arity = ArgumentArityEnum.Zero)]
-    public bool Zero { get; set; }
+    [Option("--Option-Zero", Arity = ArgumentArityEnum.Zero)]
+    public bool OptionZero { get; set; }
 
-    [Option("--ZeroOrOne", Arity = ArgumentArityEnum.ZeroOrOne)]
-    public bool ZeroOrOne { get; set; }
+    [Option("--Option-ZeroOrOne", Arity = ArgumentArityEnum.ZeroOrOne)]
+    public bool OptionZeroOrOne { get; set; }
 
-    [Option("--ExactlyOne", Arity = ArgumentArityEnum.ExactlyOne)]
-    public bool ExactlyOne { get; set; }
+    [Option("--Option-ExactlyOne", Arity = ArgumentArityEnum.ExactlyOne)]
+    public bool OptionExactlyOne { get; set; }
 
-    [Option("--ZeroOrMore", Arity = ArgumentArityEnum.ZeroOrMore)]
-    public bool ZeroOrMore { get; set; }
+    [Option("--Option-ZeroOrMore", Arity = ArgumentArityEnum.ZeroOrMore)]
+    public bool OptionZeroOrMore { get; set; }
 
-    [Option("--OneOrMore", Arity = ArgumentArityEnum.OneOrMore)]
-    public bool OneOrMore { get; set; }
+    [Option("--Option-OneOrMore", Arity = ArgumentArityEnum.OneOrMore)]
+    public bool OptionOneOrMore { get; set; }
+    
+    [Argument("--Argument-Zero", Arity = ArgumentArityEnum.Zero)]
+    public bool ArgumentZero { get; set; }
+
+    [Argument("--Argument-ZeroOrOne", Arity = ArgumentArityEnum.ZeroOrOne)]
+    public bool ArgumentZeroOrOne { get; set; }
+
+    [Argument("--Argument-ExactlyOne", Arity = ArgumentArityEnum.ExactlyOne)]
+    public bool ArgumentExactlyOne { get; set; }
+
+    [Argument("--Argument-ZeroOrMore", Arity = ArgumentArityEnum.ZeroOrMore)]
+    public bool ArgumentZeroOrMore { get; set; }
+
+    [Argument("--Argument-OneOrMore", Arity = ArgumentArityEnum.OneOrMore)]
+    public bool ArgumentOneOrMore { get; set; }
 }

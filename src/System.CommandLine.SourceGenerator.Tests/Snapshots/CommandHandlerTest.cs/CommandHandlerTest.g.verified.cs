@@ -38,7 +38,8 @@ namespace System.CommandLine.SourceGenerator.Tests
             var symbol4 = new global::System.CommandLine.Option<global::System.Int32?>("--nullable-int", "Description: NullableIntProperty");
             var symbol5 = new global::System.CommandLine.Argument<global::System.Double>("Argument", null)
             {
-                Arity = new global::System.CommandLine.ArgumentArity(2, 4)
+                Arity = new global::System.CommandLine.ArgumentArity(2, 4),
+                Description = "Description: DoubleProperty"
             };
             ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.CommandHandlerTest> handler = null;
             if (options != null)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine.SourceGenerator.CodeAnalysis;
 using System.CommandLine.SourceGenerator.Models;
 using System.CommandLine.SourceGenerator.Extensions;
@@ -64,8 +65,21 @@ public class Generator : IIncrementalGenerator
 
     private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<CommandDeclaration> commandDeclarations)
     {
-        foreach (var (hintName, sourceText) in commandDeclarations.SelectMany(CommandLineGenerator.Generate))
+        var reduce = new Dictionary<INamedTypeSymbol, CommandDeclaration>(SymbolEqualityComparer.Default);
+
+        foreach (var command in commandDeclarations.SelectMany(Flatten))
+            reduce[command.TypeSymbol] = command;
+
+        foreach (var (hintName, sourceText) in reduce.Values.Select(CommandLineGenerator.Generate))
             context.AddSource(hintName, sourceText);
+
+        static IEnumerable<CommandDeclaration> Flatten(CommandDeclaration command)
+        {
+            yield return command;
+
+            foreach (var subCommand in command.CommandDeclarations.SelectMany(Flatten))
+                yield return subCommand;
+        }
     }
 
     private static CommandDeclaration ResolveCommandDeclaration(TypeLoaderGeneratorSyntaxContext context, AttributeSyntax syntax)
@@ -76,7 +90,7 @@ public class Generator : IIncrementalGenerator
         if (context.SemanticModel.GetSymbolInfo(syntax) is not { Symbol: IMethodSymbol attributeSymbol })
             return null;
 
-        if (!attributeSymbol.ContainingType.Is(context.RootCommandAttributeType))
+        if (!context.CommandAttributeType.IsAssignableFrom(attributeSymbol.ContainingType))
             return null;
 
         // Resolve ITypeSymbol

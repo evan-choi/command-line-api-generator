@@ -18,23 +18,43 @@ namespace System.CommandLine.SourceGenerator.Tests
 
         public static global::System.CommandLine.RootCommand Create(ArgumentArityEnumTestOptions options)
         {
-            var symbol = new global::System.CommandLine.Option<global::System.Boolean>("--Zero", null)
+            var symbol = new global::System.CommandLine.Option<global::System.Boolean>("--Option-Zero", null)
             {
                 Arity = global::System.CommandLine.ArgumentArity.Zero
             };
-            var symbol1 = new global::System.CommandLine.Option<global::System.Boolean>("--ZeroOrOne", null)
+            var symbol1 = new global::System.CommandLine.Option<global::System.Boolean>("--Option-ZeroOrOne", null)
             {
                 Arity = global::System.CommandLine.ArgumentArity.ZeroOrOne
             };
-            var symbol2 = new global::System.CommandLine.Option<global::System.Boolean>("--ExactlyOne", null)
+            var symbol2 = new global::System.CommandLine.Option<global::System.Boolean>("--Option-ExactlyOne", null)
             {
                 Arity = global::System.CommandLine.ArgumentArity.ExactlyOne
             };
-            var symbol3 = new global::System.CommandLine.Option<global::System.Boolean>("--ZeroOrMore", null)
+            var symbol3 = new global::System.CommandLine.Option<global::System.Boolean>("--Option-ZeroOrMore", null)
             {
                 Arity = global::System.CommandLine.ArgumentArity.ZeroOrMore
             };
-            var symbol4 = new global::System.CommandLine.Option<global::System.Boolean>("--OneOrMore", null)
+            var symbol4 = new global::System.CommandLine.Option<global::System.Boolean>("--Option-OneOrMore", null)
+            {
+                Arity = global::System.CommandLine.ArgumentArity.OneOrMore
+            };
+            var symbol5 = new global::System.CommandLine.Argument<global::System.Boolean>("--Argument-Zero", null)
+            {
+                Arity = global::System.CommandLine.ArgumentArity.Zero
+            };
+            var symbol6 = new global::System.CommandLine.Argument<global::System.Boolean>("--Argument-ZeroOrOne", null)
+            {
+                Arity = global::System.CommandLine.ArgumentArity.ZeroOrOne
+            };
+            var symbol7 = new global::System.CommandLine.Argument<global::System.Boolean>("--Argument-ExactlyOne", null)
+            {
+                Arity = global::System.CommandLine.ArgumentArity.ExactlyOne
+            };
+            var symbol8 = new global::System.CommandLine.Argument<global::System.Boolean>("--Argument-ZeroOrMore", null)
+            {
+                Arity = global::System.CommandLine.ArgumentArity.ZeroOrMore
+            };
+            var symbol9 = new global::System.CommandLine.Argument<global::System.Boolean>("--Argument-OneOrMore", null)
             {
                 Arity = global::System.CommandLine.ArgumentArity.OneOrMore
             };
@@ -43,7 +63,7 @@ namespace System.CommandLine.SourceGenerator.Tests
                 handler = options.Handler;
             global::System.CommandLine.Invocation.ICommandHandler handlerAdapter = null;
             if (handler != null)
-                handlerAdapter = new ArgumentArityEnumTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4);
+                handlerAdapter = new ArgumentArityEnumTestCommandHandlerAdapter(handler, symbol, symbol1, symbol2, symbol3, symbol4, symbol5, symbol6, symbol7, symbol8, symbol9);
             var cmd = new global::System.CommandLine.RootCommand("")
             {
                 Handler = handlerAdapter
@@ -53,32 +73,52 @@ namespace System.CommandLine.SourceGenerator.Tests
             cmd.AddOption(symbol2);
             cmd.AddOption(symbol3);
             cmd.AddOption(symbol4);
+            cmd.AddArgument(symbol5);
+            cmd.AddArgument(symbol6);
+            cmd.AddArgument(symbol7);
+            cmd.AddArgument(symbol8);
+            cmd.AddArgument(symbol9);
             return cmd;
         }
 
         private sealed class ArgumentArityEnumTestCommandHandlerAdapter : global::System.CommandLine.Invocation.ICommandHandler
         {
             private readonly ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.ArgumentArityEnumTest> _commandHandler;
-            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolZero;
-            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolZeroOrOne;
-            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolExactlyOne;
-            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolZeroOrMore;
-            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOneOrMore;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOptionZero;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOptionZeroOrOne;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOptionExactlyOne;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOptionZeroOrMore;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolOptionOneOrMore;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolArgumentZero;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolArgumentZeroOrOne;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolArgumentExactlyOne;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolArgumentZeroOrMore;
+            private readonly global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> _symbolArgumentOneOrMore;
 
             public ArgumentArityEnumTestCommandHandlerAdapter(
                 ICommandHandler<global::System.CommandLine.SourceGenerator.Tests.ArgumentArityEnumTest> commandHandler,
-                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolZero,
-                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolZeroOrOne,
-                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolExactlyOne,
-                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolZeroOrMore,
-                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOneOrMore)
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOptionZero,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOptionZeroOrOne,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOptionExactlyOne,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOptionZeroOrMore,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolOptionOneOrMore,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolArgumentZero,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolArgumentZeroOrOne,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolArgumentExactlyOne,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolArgumentZeroOrMore,
+                global::System.CommandLine.Binding.IValueDescriptor<global::System.Boolean> symbolArgumentOneOrMore)
             {
                 _commandHandler = commandHandler;
-                _symbolZero = symbolZero;
-                _symbolZeroOrOne = symbolZeroOrOne;
-                _symbolExactlyOne = symbolExactlyOne;
-                _symbolZeroOrMore = symbolZeroOrMore;
-                _symbolOneOrMore = symbolOneOrMore;
+                _symbolOptionZero = symbolOptionZero;
+                _symbolOptionZeroOrOne = symbolOptionZeroOrOne;
+                _symbolOptionExactlyOne = symbolOptionExactlyOne;
+                _symbolOptionZeroOrMore = symbolOptionZeroOrMore;
+                _symbolOptionOneOrMore = symbolOptionOneOrMore;
+                _symbolArgumentZero = symbolArgumentZero;
+                _symbolArgumentZeroOrOne = symbolArgumentZeroOrOne;
+                _symbolArgumentExactlyOne = symbolArgumentExactlyOne;
+                _symbolArgumentZeroOrMore = symbolArgumentZeroOrMore;
+                _symbolArgumentOneOrMore = symbolArgumentOneOrMore;
             }
 
             public int Invoke(global::System.CommandLine.Invocation.InvocationContext context)
@@ -90,11 +130,16 @@ namespace System.CommandLine.SourceGenerator.Tests
             {
                 var command = new global::System.CommandLine.SourceGenerator.Tests.ArgumentArityEnumTest()
                 {
-                    Zero = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolZero, context),
-                    ZeroOrOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolZeroOrOne, context),
-                    ExactlyOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolExactlyOne, context),
-                    ZeroOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolZeroOrMore, context),
-                    OneOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOneOrMore, context)
+                    OptionZero = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOptionZero, context),
+                    OptionZeroOrOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOptionZeroOrOne, context),
+                    OptionExactlyOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOptionExactlyOne, context),
+                    OptionZeroOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOptionZeroOrMore, context),
+                    OptionOneOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolOptionOneOrMore, context),
+                    ArgumentZero = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolArgumentZero, context),
+                    ArgumentZeroOrOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolArgumentZeroOrOne, context),
+                    ArgumentExactlyOne = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolArgumentExactlyOne, context),
+                    ArgumentZeroOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolArgumentZeroOrMore, context),
+                    ArgumentOneOrMore = ValueDesriptorHelper.GetValueForHandlerParameter<global::System.Boolean>(_symbolArgumentOneOrMore, context)
                 };
                 return _commandHandler.InvokeAsync(command);
             }

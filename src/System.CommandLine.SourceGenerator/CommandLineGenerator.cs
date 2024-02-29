@@ -12,7 +12,7 @@ using Property = KeyValuePair<string, object>;
 
 internal static class CommandLineGenerator
 {
-    public static IEnumerable<(string HintName, SourceText Source)> Generate(CommandDeclaration command)
+    public static (string HintName, SourceText Source) Generate(CommandDeclaration command)
     {
         var source = new SourceTextBuilder();
 
@@ -35,9 +35,7 @@ internal static class CommandLineGenerator
 
         var hitName = $"{command.TypeSymbol.Name}.g.cs";
 
-        return command.CommandDeclarations
-            .SelectMany(Generate)
-            .Append((hitName, source.Build()));
+        return (hitName, source.Build());
     }
 
     private static void GenerateOptionsClassDefinition(CommandDeclaration command, SourceTextBuilder source)
@@ -122,33 +120,6 @@ internal static class CommandLineGenerator
         source.WriteLine($"return {commandVariableName};", true);
 
         source.CloseBrace();
-    }
-
-    private static string GenerateOptionsCreationCode(SourceTextBuilder source, CommandDeclaration command)
-    {
-        return GenerateCreationCode(source, new MethodContext(), command);
-
-        static string GenerateCreationCode(SourceTextBuilder source, MethodContext methodContext, CommandDeclaration command)
-        {
-            var optionsVariableName = methodContext.Declare("options", null);
-            var optionsProperties = new Dictionary<string, object>();
-
-            // sub
-            foreach (var subCommand in command.CommandDeclarations)
-            {
-                var subCommandVariableName = GenerateCreationCode(source, methodContext, subCommand);
-                optionsProperties[subCommand.OptionsType.Name] = new RawLiteral(subCommandVariableName);
-            }
-
-            // main
-            if (command.HandlerTypeSymbol is not null)
-                optionsProperties["Handler"] = new RawLiteral($"new {command.HandlerTypeSymbol.ToFullyQualifiedDisplayString(true)}()");
-
-            source.Write($"var {optionsVariableName} = ", true);
-            WriteClassCreationCode(source, command.OptionsType.Name, Enumerable.Empty<object>(), optionsProperties);
-
-            return optionsVariableName;
-        }
     }
 
     /*

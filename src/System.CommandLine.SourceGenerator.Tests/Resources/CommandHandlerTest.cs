@@ -37,7 +37,7 @@ public class CommandHandlerTest
     )]
     public int? NullableIntProperty { get; set; }
 
-    [Argument("Argument")]
+    [Argument("Argument", Description = "Description: DoubleProperty")]
     [ArgumentArity(2, 4)]
     public double DoubleProperty { get; set; }
 
